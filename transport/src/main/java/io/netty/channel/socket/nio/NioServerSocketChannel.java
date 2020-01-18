@@ -139,6 +139,8 @@ public class NioServerSocketChannel extends AbstractNioMessageChannel
     protected int doReadMessages(List<Object> buf) throws Exception {
 //        javaChannel() 获取服务端启动过程中创建的JDK的Channel
 //        获取java.nio.channels.SocketChannel并accept()
+//        不管是OIO/NIO/AIO,均无需显示切换SocketChannel.因为SocketChannel是由不同的ServerSocketChannel创建出来的
+//        [此版本不支持AIO]
         SocketChannel ch = javaChannel().accept();
 
         try {

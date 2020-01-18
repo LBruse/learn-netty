@@ -49,11 +49,13 @@ public final class EchoServer {
         }
 
         // Configure the server.
+//        使用不同的EventLoopGroup实现,可以切换成不同的开发模式.OIO/NIO/AIO
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
             ServerBootstrap b = new ServerBootstrap();
             b.group(bossGroup, workerGroup)
+//                    可以使用不同的ServerSocketChannel切换成不同的I/O模式.OIO/NIO/AIO
              .channel(NioServerSocketChannel.class)
              .option(ChannelOption.SO_BACKLOG, 100)
              .handler(new LoggingHandler(LogLevel.INFO))

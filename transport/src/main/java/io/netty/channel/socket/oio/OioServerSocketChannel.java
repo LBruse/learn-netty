@@ -151,6 +151,8 @@ public class OioServerSocketChannel extends AbstractOioMessageChannel
         }
 
         try {
+//            不管是OIO/NIO/AIO,均无需显示切换SocketChannel.因为SocketChannel是由不同的ServerSocketChannel创建出来的
+//            [此版本不支持AIO]
             Socket s = socket.accept();
             try {
                 buf.add(new OioSocketChannel(this, s));

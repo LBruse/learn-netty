@@ -20,6 +20,7 @@ import io.netty.util.internal.StringUtil;
 
 /**
  * A {@link ChannelFactory} that instantiates a new {@link Channel} by invoking its default constructor reflectively.
+ * 泛型+反射+工厂实现IO模式切换
  */
 public class ReflectiveChannelFactory<T extends Channel> implements ChannelFactory<T> {
 
@@ -34,6 +35,7 @@ public class ReflectiveChannelFactory<T extends Channel> implements ChannelFacto
 
     @Override
     public T newChannel() {
+//        通过反射的方式实例化ServerSocketChannel
         try {
             return clazz.newInstance();
         } catch (Throwable t) {
