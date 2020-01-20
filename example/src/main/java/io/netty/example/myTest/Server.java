@@ -36,6 +36,8 @@ public class Server {
                     .childAttr(AttributeKey.newInstance("childAttr"), "childAttrValue")
 //                    服务端启动过程逻辑
                     .handler(new ServerHandler())
+//                    设置keepalive[即在ServerBootstrap的channelRead方法中,把Options的值设置到SocketChannel中]
+                    .childOption(ChannelOption.SO_KEEPALIVE,true)
                     .childHandler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         protected void initChannel(SocketChannel ch) throws Exception {

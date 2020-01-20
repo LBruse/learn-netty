@@ -113,6 +113,7 @@ public class DefaultSocketChannelConfig extends DefaultChannelConfig
         } else if (option == TCP_NODELAY) {
             setTcpNoDelay((Boolean) value);
         } else if (option == SO_KEEPALIVE) {
+//            设置KeepAlive
             setKeepAlive((Boolean) value);
         } else if (option == SO_REUSEADDR) {
             setReuseAddress((Boolean) value);
@@ -195,6 +196,7 @@ public class DefaultSocketChannelConfig extends DefaultChannelConfig
     @Override
     public SocketChannelConfig setKeepAlive(boolean keepAlive) {
         try {
+//            调用java socket的setKeepAlive()方法启用KeepAlive
             javaSocket.setKeepAlive(keepAlive);
         } catch (SocketException e) {
             throw new ChannelException(e);
