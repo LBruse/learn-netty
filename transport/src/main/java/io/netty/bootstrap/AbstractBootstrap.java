@@ -326,7 +326,8 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
             // as the Channel is not registered yet we need to force the usage of the GlobalEventExecutor
             return new DefaultChannelPromise(channel, GlobalEventExecutor.INSTANCE).setFailure(t);
         }
-
+//        config().group().register(channel) --> 将ServerSocketChannel绑定到BossGroup
+//        ServerSocketChannel创建SocketChannel,然后把SocketChannel绑定到WorkGroup上,完成主从Reactor模型.
         ChannelFuture regFuture = config().group().register(channel);
         if (regFuture.cause() != null) {
             if (channel.isRegistered()) {

@@ -232,6 +232,7 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
         @Override
         @SuppressWarnings("unchecked")
         public void channelRead(ChannelHandlerContext ctx, Object msg) {
+//            传入的msg是一个SocketChannel
             final Channel child = (Channel) msg;
 
 //            添加childHandler
