@@ -61,6 +61,8 @@ import java.util.concurrent.TimeUnit;
  * </pre>
  * @see ReadTimeoutHandler
  * @see IdleStateHandler
+ *
+ * 开箱即用的WriteTimeoutHandler
  */
 public class WriteTimeoutHandler extends ChannelOutboundHandlerAdapter {
     private static final long MIN_TIMEOUT_NANOS = TimeUnit.MILLISECONDS.toNanos(1);
@@ -108,6 +110,7 @@ public class WriteTimeoutHandler extends ChannelOutboundHandlerAdapter {
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
         if (timeoutNanos > 0) {
             promise = promise.unvoid();
+//            写的时候schedule一个task去检查是否完成了
             scheduleTimeout(ctx, promise);
         }
         ctx.write(msg, promise);
@@ -176,7 +179,9 @@ public class WriteTimeoutHandler extends ChannelOutboundHandlerAdapter {
      */
     protected void writeTimedOut(ChannelHandlerContext ctx) throws Exception {
         if (!closed) {
+//            向下传播一个WriteTimeOut事件
             ctx.fireExceptionCaught(WriteTimeoutException.INSTANCE);
+//            关闭SocketChannel
             ctx.close();
             closed = true;
         }
@@ -203,8 +208,12 @@ public class WriteTimeoutHandler extends ChannelOutboundHandlerAdapter {
             // Was not written yet so issue a write timeout
             // The promise itself will be failed with a ClosedChannelException once the close() was issued
             // See https://github.com/netty/netty/issues/2159
+//            判断Write本身是否已完成
+//            并不是判断是否触发了WriteIdle,而是判断写是否完成.
+//            [当一定时间内不能完成write,触发一个WriteTimeOutException]
             if (!promise.isDone()) {
                 try {
+//                    向下传播一个WriteTimeOut事件
                     writeTimedOut(ctx);
                 } catch (Throwable t) {
                     ctx.fireExceptionCaught(t);

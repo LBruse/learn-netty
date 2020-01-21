@@ -106,6 +106,9 @@ public class IdleStateHandler extends ChannelDuplexHandler {
         }
     };
 
+    /**
+     * 读IDLE触发的时间[即触发读IDLE的超时时间]
+     */
     private final long readerIdleTimeNanos;
     private final long writerIdleTimeNanos;
     private final long allIdleTimeNanos;
@@ -175,9 +178,12 @@ public class IdleStateHandler extends ChannelDuplexHandler {
             throw new NullPointerException("unit");
         }
 
+//        当传入的触发读IDLE超时时间<=0时,触发读IDLE超时时间为0
         if (readerIdleTime <= 0) {
             readerIdleTimeNanos = 0;
         } else {
+//            当传入的触发读IDLE超时时间>0时,
+//            取传入的触发读IDLE超时时间和默认超时时间[1毫秒,即1000000纳秒]的最大值
             readerIdleTimeNanos = Math.max(unit.toNanos(readerIdleTime), MIN_TIMEOUT_NANOS);
         }
         if (writerIdleTime <= 0) {
@@ -340,6 +346,7 @@ public class IdleStateHandler extends ChannelDuplexHandler {
      * {@link ChannelHandlerContext#fireUserEventTriggered(Object)}.
      */
     protected void channelIdle(ChannelHandlerContext ctx, IdleStateEvent evt) throws Exception {
+//        向下传播一个UserEventTriggered事件
         ctx.fireUserEventTriggered(evt);
     }
 
@@ -372,27 +379,32 @@ public class IdleStateHandler extends ChannelDuplexHandler {
             if (!ctx.channel().isOpen()) {
                 return;
             }
-
+//            获取触发读IDLE的超时时间阈值
             long nextDelay = readerIdleTimeNanos;
+//            当前没有在读
             if (!reading) {
+//                计算是否IDLE的关键
+//                计算 触发读IDLE的超时时间 -当前时间和上次读入数据的时间差 的差值
                 nextDelay -= System.nanoTime() - lastReadTime;
             }
-
+//            空闲了
             if (nextDelay <= 0) {
                 // Reader is idle - set a new timeout and notify the callback.
                 readerIdleTimeout =
                     ctx.executor().schedule(this, readerIdleTimeNanos, TimeUnit.NANOSECONDS);
+//                实例化一个READER_IDLE
                 try {
                     IdleStateEvent event = newIdleStateEvent(IdleState.READER_IDLE, firstReaderIdleEvent);
                     if (firstReaderIdleEvent) {
                         firstReaderIdleEvent = false;
                     }
-
+//                    将READER_IDLE在pipeline中向下进行传播
                     channelIdle(ctx, event);
                 } catch (Throwable t) {
                     ctx.fireExceptionCaught(t);
                 }
             } else {
+//                当前SocketChannel没有空闲,重新创建一个监测Task,用nextDelay时间
                 // Read occurred before the timeout - set a new timeout with shorter delay.
                 readerIdleTimeout = ctx.executor().schedule(this, nextDelay, TimeUnit.NANOSECONDS);
             }
@@ -409,6 +421,7 @@ public class IdleStateHandler extends ChannelDuplexHandler {
 
         @Override
         public void run() {
+//            大体与ReaderIdleTimeoutTask逻辑类似
             if (!ctx.channel().isOpen()) {
                 return;
             }

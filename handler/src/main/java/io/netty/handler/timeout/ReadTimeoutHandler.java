@@ -58,6 +58,8 @@ import java.util.concurrent.TimeUnit;
  * </pre>
  * @see WriteTimeoutHandler
  * @see IdleStateHandler
+ *
+ * 开箱即用的ReadTimeoutHandler
  */
 public class ReadTimeoutHandler extends IdleStateHandler {
     private boolean closed;
@@ -94,7 +96,9 @@ public class ReadTimeoutHandler extends IdleStateHandler {
      * Is called when a read timeout was detected.
      */
     protected void readTimedOut(ChannelHandlerContext ctx) throws Exception {
+//        发生readTimedOut的时候.[触发了ReadIdle]
         if (!closed) {
+//            向下传播ReadTimeoutException,关闭SocketChannel
             ctx.fireExceptionCaught(ReadTimeoutException.INSTANCE);
             ctx.close();
             closed = true;

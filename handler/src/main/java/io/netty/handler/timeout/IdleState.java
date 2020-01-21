@@ -25,13 +25,16 @@ public enum IdleState {
     /**
      * No data was received for a while.
      */
+//    读IDLE,表示一段时间没有数据读入
     READER_IDLE,
     /**
      * No data was sent for a while.
      */
+//    写IDLE,表示一段时间没有数据写出
     WRITER_IDLE,
     /**
      * No data was either received or sent for a while.
      */
+//    读/写 IDLE
     ALL_IDLE
 }
