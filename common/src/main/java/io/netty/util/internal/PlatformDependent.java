@@ -89,6 +89,9 @@ public final class PlatformDependent {
     private static final boolean IS_EXPLICIT_NO_UNSAFE = explicitNoUnsafe0();
     private static final boolean HAS_UNSAFE = hasUnsafe0();
     private static final boolean CAN_USE_CHM_V8 = HAS_UNSAFE && JAVA_VERSION < 8;
+    /**
+     * 运行环境的JDK拥有UNSAFE对象且io.netty.noPreferDirect设置为false,才会使用堆外内存
+     */
     private static final boolean DIRECT_BUFFER_PREFERRED =
             HAS_UNSAFE && !SystemPropertyUtil.getBoolean("io.netty.noPreferDirect", false);
     private static final long MAX_DIRECT_MEMORY = maxDirectMemory0();

@@ -89,12 +89,14 @@ public abstract class AbstractByteBufAllocator implements ByteBufAllocator {
      *                     a heap buffer
      */
     protected AbstractByteBufAllocator(boolean preferDirect) {
+//        使用堆外内存的条件: preferDirect == true [倾向使用堆外内存] && 运行环境拥有UNSAFE对象
         directByDefault = preferDirect && PlatformDependent.hasUnsafe();
         emptyBuf = new EmptyByteBuf(this);
     }
 
     @Override
     public ByteBuf buffer() {
+//        根据不同条件实例化堆内/堆外内存
         if (directByDefault) {
             return directBuffer();
         }

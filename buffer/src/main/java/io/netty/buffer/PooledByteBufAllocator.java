@@ -127,6 +127,9 @@ public class PooledByteBufAllocator extends AbstractByteBufAllocator {
         }
     }
 
+    /**
+     * PlatformDependent.directBufferPreferred()决定是使用堆内还是堆外内存
+     */
     public static final PooledByteBufAllocator DEFAULT =
             new PooledByteBufAllocator(PlatformDependent.directBufferPreferred());
 
