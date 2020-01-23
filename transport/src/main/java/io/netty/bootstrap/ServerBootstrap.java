@@ -165,7 +165,9 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
         synchronized (childAttrs) {
             currentChildAttrs = childAttrs.entrySet().toArray(newAttrArray(childAttrs.size()));
         }
-
+//        ChannelInitializer 一次性、初始化Handler;
+//        负责添加一个ServerBootstrapAcceptor Handler,添加完后,自己就移除了;
+//        ServerBootstrapAcceptor Handler:负责接收客户端且连接创建后,对连接的初始化工作
         p.addLast(new ChannelInitializer<Channel>() {
             @Override
             public void initChannel(Channel ch) throws Exception {
