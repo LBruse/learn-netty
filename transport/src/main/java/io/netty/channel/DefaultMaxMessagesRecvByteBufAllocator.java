@@ -70,6 +70,7 @@ public abstract class DefaultMaxMessagesRecvByteBufAllocator implements MaxMessa
 
         @Override
         public ByteBuf allocate(ByteBufAllocator alloc) {
+//            guess()[默认返回1024,因为不知道数据实际大小]
             return alloc.ioBuffer(guess());
         }
 

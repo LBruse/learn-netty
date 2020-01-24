@@ -1112,10 +1112,13 @@ public abstract class AbstractByteBuf extends ByteBuf {
     public int writeBytes(ScatteringByteChannel in, int length) throws IOException {
         ensureAccessible();
         ensureWritable(length);
+//        -1代表EOF,正常关闭,IO Exception代表读数据时被关闭
         int writtenBytes = setBytes(writerIndex, in, length);
+//        调整ByteBuf写指针
         if (writtenBytes > 0) {
             writerIndex += writtenBytes;
         }
+//        返回读入字节数
         return writtenBytes;
     }
 

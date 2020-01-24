@@ -107,7 +107,9 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
         public final void read() {
             final ChannelConfig config = config();
             final ChannelPipeline pipeline = pipeline();
+//            ByteBuf分配器
             final ByteBufAllocator allocator = config.getAllocator();
+//            AdaptiveRecvByteBufAllocator:[决定下一次要分配多大的ByteBuf]
             final RecvByteBufAllocator.Handle allocHandle = recvBufAllocHandle();
             allocHandle.reset(config);
 
@@ -115,8 +117,11 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
             boolean close = false;
             try {
                 do {
+//                    分配ByteBuf,尽可能分配合适的大小
                     byteBuf = allocHandle.allocate(allocator);
+//                    读且记录读了多少,如果读满了,下次continue的话就直接扩容
                     allocHandle.lastBytesRead(doReadBytes(byteBuf));
+//                    如果没有读入数据,释放ByteBuf
                     if (allocHandle.lastBytesRead() <= 0) {
                         // nothing was read. release the buffer.
                         byteBuf.release();
@@ -124,14 +129,18 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
                         close = allocHandle.lastBytesRead() < 0;
                         break;
                     }
-
+//                    记录读入次数
                     allocHandle.incMessagesRead(1);
                     readPending = false;
+//                    向下传播读入的数据,业务逻辑处理就在这个地方
+//                    fireChannelRead()是只要一直在读入数据,就会一直触发
                     pipeline.fireChannelRead(byteBuf);
                     byteBuf = null;
                 } while (allocHandle.continueReading());
-
+//                记录这次读事件总共读了多少数据,计算下次分配大小
                 allocHandle.readComplete();
+//                相当于完成本次读事件的处理
+//                fireChannelReadComplete()是所有数据都读完后,才触发
                 pipeline.fireChannelReadComplete();
 
                 if (close) {
