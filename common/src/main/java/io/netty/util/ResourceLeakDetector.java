@@ -46,25 +46,31 @@ public class ResourceLeakDetector<T> {
 
     /**
      * Represents the level of resource leak detection.
+     * 表示是否开启内存泄漏检测
      */
     public enum Level {
         /**
          * Disables resource leak detection.
+         * 不开启
          */
         DISABLED,
         /**
          * Enables simplistic sampling resource leak detection which reports there is a leak or not,
          * at the cost of small overhead (default).
+         * 默认级别,只告诉有没有内存泄漏,并没有记录泄漏的位置
          */
         SIMPLE,
         /**
          * Enables advanced sampling resource leak detection which reports where the leaked object was accessed
          * recently at the cost of high overhead.
+         * 在SIMPLE级别之上,记录出现泄漏可能的位置,占用的内存要大一点
          */
         ADVANCED,
         /**
          * Enables paranoid resource leak detection which reports where the leaked object was accessed recently,
          * at the cost of the highest possible overhead (for testing purposes only).
+         * 在ADVANCED级别之上,以上两种级别都不是所有的样本都会去跟踪是否内存泄漏,而是只跟踪一部分对象.
+         * PARANOID是每个对象都会去跟踪,也会记录可能内存泄漏的地方
          */
         PARANOID
     }
@@ -216,11 +222,14 @@ public class ResourceLeakDetector<T> {
      */
     public final ResourceLeak open(T obj) {
         Level level = ResourceLeakDetector.level;
+//        如果级别为DISABLED,直接返回
         if (level == Level.DISABLED) {
             return null;
         }
 
+//        如果<PARANOID,则不是每次都tracking
         if (level.ordinal() < Level.PARANOID.ordinal()) {
+//            如果result==0,创建一个DefaultResourceLeak
             if ((++ leakCheckCnt & mask) == 0) {
                 reportLeak(level);
                 return new DefaultResourceLeak(obj);
@@ -234,7 +243,9 @@ public class ResourceLeakDetector<T> {
     }
 
     private void reportLeak(Level level) {
+//        判断级别
         if (!logger.isErrorEnabled()) {
+//            自旋的方式,直接把refQueue清理掉并return
             for (;;) {
                 @SuppressWarnings("unchecked")
                 DefaultResourceLeak ref = (DefaultResourceLeak) refQueue.poll();
@@ -262,10 +273,12 @@ public class ResourceLeakDetector<T> {
 
             ref.clear();
 
+//            判断有没有泄露的关键
             if (!ref.close()) {
                 continue;
             }
 
+//            内存泄露,打印信息
             String records = ref.toString();
             if (reportedLeaks.putIfAbsent(records, Boolean.TRUE) == null) {
                 if (records.isEmpty()) {
