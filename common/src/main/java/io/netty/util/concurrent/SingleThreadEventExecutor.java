@@ -221,11 +221,15 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
     }
 
     protected final Runnable pollTaskFrom(Queue<Runnable> taskQueue) {
+//        自旋
         for (;;) {
+//            弹出一个Task
             Runnable task = taskQueue.poll();
+//            如果Task等于WAKEUP_TASK,直接跳过
             if (task == WAKEUP_TASK) {
                 continue;
             }
+//            返回一个Task
             return task;
         }
     }
@@ -368,11 +372,13 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
      * @return {@code true} if and only if at least one task was run
      */
     protected boolean runAllTasks() {
+//        断言 当前执行线程是否NioEventLoop
         assert inEventLoop();
         boolean fetchedAll;
         boolean ranAtLeastOne = false;
 
         do {
+//            将定时任务队列中的已到时间执行的任务聚合到task queue
             fetchedAll = fetchFromScheduledTaskQueue();
             if (runAllTasksFrom(taskQueue)) {
                 ranAtLeastOne = true;
@@ -394,13 +400,19 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
      * @return {@code true} if atleast one task was executed.
      */
     protected final boolean runAllTasksFrom(Queue<Runnable> taskQueue) {
+//        从taskQueue中弹出任务
         Runnable task = pollTaskFrom(taskQueue);
+//        如果没有任务,return false
         if (task == null) {
             return false;
         }
+//        自旋
         for (;;) {
+//            执行Task
             safeExecute(task);
+//            尝试继续从taskQueue弹出任务,并继续执行
             task = pollTaskFrom(taskQueue);
+//            如果已经没有Task待执行,return true
             if (task == null) {
                 return true;
             }

@@ -464,6 +464,8 @@ public final class NioEventLoop extends SingleThreadEventLoop {
 //                用于控制processSelectedKeys()和runAllTasks()执行时间
 //                默认50, 处理IO事件与处理TaskQueue任务时间控制为1:1
                 final int ioRatio = this.ioRatio;
+//                ioRatio == 100 相等于并没有控制IO事件处理与处理TaskQueue任务的时间比例
+//                先处理完IO事件,再处理taskQueue的任务
                 if (ioRatio == 100) {
                     try {
 //                        处理IO事件
@@ -484,6 +486,9 @@ public final class NioEventLoop extends SingleThreadEventLoop {
 //                        计算IO事件处理完成时间
                         final long ioTime = System.nanoTime() - ioStartTime;
 //                        处理外部线程扔到taskQueue的任务
+//                        ioTime * (100 - ioRatio) / ioRatio
+//                        ioTime * (100 - 50) / 50 = 1
+//                        处理IO事件花费多少时间,处理taskQueue任务的时间最多也允许花费这么时间
                         runAllTasks(ioTime * (100 - ioRatio) / ioRatio);
                     }
                 }
