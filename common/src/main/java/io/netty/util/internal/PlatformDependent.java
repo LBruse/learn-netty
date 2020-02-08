@@ -853,6 +853,7 @@ public final class PlatformDependent {
 
         static {
             Object unsafe = null;
+//            判断是否有Unsafe对象
             if (hasUnsafe()) {
                 // jctools goes through its own process of initializing unsafe; of
                 // course, this requires permissions which might not be granted to calling code, so we
@@ -865,25 +866,30 @@ public final class PlatformDependent {
                     }
                 });
             }
-
+//            没有Unsafe对象
             if (unsafe == null) {
                 logger.debug("org.jctools-core.MpscChunkedArrayQueue: unavailable");
+//                没有Unsafe对象,不使用ARRAY_QUEUE
                 USE_MPSC_CHUNKED_ARRAY_QUEUE = false;
             } else {
                 logger.debug("org.jctools-core.MpscChunkedArrayQueue: available");
+//                有Unsafe对象,使用ARRAY_QUEUE
                 USE_MPSC_CHUNKED_ARRAY_QUEUE = true;
             }
         }
 
         static <T> Queue<T> newMpscQueue(final int maxCapacity) {
+//            根据所使用JDK是否有Unsafe,决定MPSC Queue的数据结构
             if (USE_MPSC_CHUNKED_ARRAY_QUEUE) {
                 // Calculate the max capacity which can not be bigger then MAX_ALLOWED_MPSC_CAPACITY.
                 // This is forced by the MpscChunkedArrayQueue implementation as will try to round it
                 // up to the next power of two and so will overflow otherwise.
                 final int capacity =
                         Math.max(Math.min(maxCapacity, MAX_ALLOWED_MPSC_CAPACITY), MIN_MAX_MPSC_CAPACITY);
+//                使用数组
                 return new MpscChunkedArrayQueue<T>(MPSC_CHUNK_SIZE, capacity, true);
             } else {
+//                使用链表
                 return new MpscLinkedAtomicQueue<T>();
             }
         }
