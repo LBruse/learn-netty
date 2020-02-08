@@ -210,10 +210,14 @@ abstract class AbstractChannelHandlerContext extends DefaultAttributeMap
     }
 
     static void invokeChannelActive(final AbstractChannelHandlerContext next) {
+//        获取到pipeline head 节点的executor
         EventExecutor executor = next.executor();
+//        如果当前执行线程是与NioSocketChannel绑定的线程,直接执行head节点的invokeChannelActive()方法
         if (executor.inEventLoop()) {
             next.invokeChannelActive();
         } else {
+//            如果当前执行线程不是与NioSocketChannel绑定的线程,
+//            将调用head节点的invokeChannelActive()方法封装成Task,并丢到executor的taskQueue中
             executor.execute(new Runnable() {
                 @Override
                 public void run() {
