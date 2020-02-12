@@ -45,6 +45,8 @@ import java.util.List;
  * <b>lengthFieldLength</b>   = <b>2</b>  表示从第0个字节、第1个字节拼起来的一个十进制的数,表示数据包长度.000C-->12,往后取12个字节即"HELLO, WORLD"[12个字节]
  * lengthAdjustment    = 0                表示额外的数据包长度,lengthFieldLength为2,lengthAdjustment为1,表示数据包一共是13个字节长度.
  * initialBytesToStrip = 0 (= do not strip header)    表示解析数据包时是否需要跳过字节,0为不跳过
+ * 总共14个字节,头两个字节拼起来就是数据长度,为12,
+ * 所以除去长度域字节外剩下的字节都是数据.
  *
  * BEFORE DECODE (14 bytes)         AFTER DECODE (14 bytes)
  * +--------+----------------+      +--------+----------------+
@@ -65,7 +67,8 @@ import java.util.List;
  * lengthFieldLength   = 2  表示长度域长度为2个字节.000C-->12.
  * lengthAdjustment    = 0
  * <b>initialBytesToStrip</b> = <b>2</b> (= the length of the Length field)  表示跳过0x
- *
+ * 一共14个字节,长度域为前2个字节,且数据长度为12,
+ * toStrip=2,表示解码时跳过2个字节,所以最后解压结果只有12个字节的数据,没有2个字节的长度域
  * BEFORE DECODE (14 bytes)         AFTER DECODE (12 bytes)
  * +--------+----------------+      +----------------+
  * | Length | Actual Content |----->| Actual Content |
@@ -88,7 +91,9 @@ import java.util.List;
  * lengthFieldLength   =  2
  * <b>lengthAdjustment</b>    = <b>-2</b> (= the length of the Length field)   表示数据包长度为14-2=12个字节(000E为14个字节)
  * initialBytesToStrip =  0
- *
+ * 长度域为2个字节,且长度=14
+ * Adjustment=-2,所以数据长度=12个字节,
+ * 所以到把长度域后面的12个字节全部解析为数据.
  * BEFORE DECODE (14 bytes)         AFTER DECODE (14 bytes)
  * +--------+----------------+      +--------+----------------+
  * | Length | Actual Content |----->| Length | Actual Content |
@@ -107,7 +112,8 @@ import java.util.List;
  * <b>lengthFieldLength</b>   = <b>3</b>                             表示数据包长度由3个字节组成.0000C=12,从length往后数12个字节
  * lengthAdjustment    = 0
  * initialBytesToStrip = 0
- *
+ * 一共17个字节,长度域为跳过前2个字节后的3个字节,且长度=12
+ * 数据就等于跳过前5个字节后的12个字节
  * BEFORE DECODE (17 bytes)                      AFTER DECODE (17 bytes)
  * +----------+----------+----------------+      +----------+----------+----------------+
  * | Header 1 |  Length  | Actual Content |----->| Header 1 |  Length  | Actual Content |
@@ -126,7 +132,9 @@ import java.util.List;
  * lengthFieldLength   = 3      第0、1、2个字节表示数据包长度,0C=12
  * <b>lengthAdjustment</b>    = <b>2</b> (= the length of Header 1)  从length开始往后数12+2=14个字节,Header占了2个字节,Hello World占了12个字节.
  * initialBytesToStrip = 0
- *
+ * 一共17个字节,长度域为前3个字节,且长度=12
+ * 然后Adjustment=2,所以数据实际长度=12+2=14
+ * 最后数据为长度域之后的14个字节
  * BEFORE DECODE (17 bytes)                      AFTER DECODE (17 bytes)
  * +----------+----------+----------------+      +----------+----------+----------------+
  * |  Length  | Header 1 | Actual Content |----->|  Length  | Header 1 | Actual Content |
@@ -149,7 +157,9 @@ import java.util.List;
  * lengthFieldLength   = 2                         表示第1和第2个字节表示长度.000C=12
  * <b>lengthAdjustment</b>    = <b>1</b> (= the length of HDR2)  表示数据包长度为12+1=13
  * <b>initialBytesToStrip</b> = <b>3</b> (= the length of HDR1 + LEN)  表示跳过3个字节,也就成为了AFTER的样子
- *
+ *  长度域为跳过前1个字节后的2个字节,且长度=12
+ *  且Adjustment=1,所以数据长度为13,
+ *  且toStrip=3,所以最后解析出来的数据为跳过前3个字节后的13个字节
  * BEFORE DECODE (16 bytes)                       AFTER DECODE (13 bytes)
  * +------+--------+------+----------------+      +------+----------------+
  * | HDR1 | Length | HDR2 | Actual Content |----->| HDR2 | Actual Content |
@@ -172,7 +182,10 @@ import java.util.List;
  * lengthFieldLength   =  2     表示第1、第2个字节表示长度.10表示16
  * <b>lengthAdjustment</b>    = <b>-3</b> (= the length of HDR1 + LEN, negative)  表示数据包实际长度为16+(-3)=13,从length往后数13个字节
  * <b>initialBytesToStrip</b> = <b> 3</b>  表示跳过3个字节,即成了AFTER的样子
- *
+ * 长度域为跳过前1个字节的2个字节,长度=16,
+ * 且Adjustment为-3,所以数据长度=16+(-3)=13,
+ * 且toStrip=3,所以最后解析出来的是
+ * 跳过前3个字节后的13个字节
  * BEFORE DECODE (16 bytes)                       AFTER DECODE (13 bytes)
  * +------+--------+------+----------------+      +------+----------------+
  * | HDR1 | Length | HDR2 | Actual Content |----->| HDR2 | Actual Content |
