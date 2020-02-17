@@ -38,6 +38,12 @@ public final class IpSubnetFilterRule implements IpFilterRule {
         }
     }
 
+    /**
+     * 有参构造函数
+     * @param ipAddress
+     * @param cidrPrefix 用以判断是否在一个局域网内[子网掩码、CIDR:无分类域间路由选择,即无分类编址]
+     * @param ruleType
+     */
     public IpSubnetFilterRule(InetAddress ipAddress, int cidrPrefix, IpFilterRuleType ruleType) {
         filterRule = selectFilterRule(ipAddress, cidrPrefix, ruleType);
     }
@@ -51,6 +57,7 @@ public final class IpSubnetFilterRule implements IpFilterRule {
             throw new NullPointerException("ruleType");
         }
 
+//        根据IP地址是IP4还是IP6作不同处理
         if (ipAddress instanceof Inet4Address) {
             return new Ip4SubnetFilterRule((Inet4Address) ipAddress, cidrPrefix, ruleType);
         } else if (ipAddress instanceof Inet6Address) {
@@ -82,15 +89,19 @@ public final class IpSubnetFilterRule implements IpFilterRule {
                                                                     "[0,32]. The prefix was: %d", cidrPrefix));
             }
 
+//            根据cidrPrefix计算出子网掩码
             subnetMask = prefixToSubnetMask(cidrPrefix);
+//            子网掩码 & ipAddress 得出网络号
             networkAddress = ipToInt(ipAddress) & subnetMask;
             this.ruleType = ruleType;
         }
 
         @Override
         public boolean matches(InetSocketAddress remoteAddress) {
+//            获取远程IP连接的IP地址
             int ipAddress = ipToInt((Inet4Address) remoteAddress.getAddress());
-
+//            远程IP连接的IP地址 & 子网掩码 得出远程连接的网络号
+//            将其和通过子网掩码 & ipAddress 得出的网络号进行比较,判断是不是在同一个网段内
             return (ipAddress & subnetMask) == networkAddress;
         }
 

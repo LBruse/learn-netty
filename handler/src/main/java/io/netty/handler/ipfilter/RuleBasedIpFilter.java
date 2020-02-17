@@ -33,6 +33,9 @@ import java.net.SocketAddress;
 @Sharable
 public class RuleBasedIpFilter extends AbstractRemoteAddressFilter<InetSocketAddress> {
 
+    /**
+     * IP过滤规则
+     */
     private final IpFilterRule[] rules;
 
     public RuleBasedIpFilter(IpFilterRule... rules) {
@@ -45,12 +48,17 @@ public class RuleBasedIpFilter extends AbstractRemoteAddressFilter<InetSocketAdd
 
     @Override
     protected boolean accept(ChannelHandlerContext ctx, InetSocketAddress remoteAddress) throws Exception {
+//        遍历IP过滤规则
         for (IpFilterRule rule : rules) {
+//            如果其中有一个规则为null,直接break
             if (rule == null) {
                 break;
             }
 
+//            是否匹配远程连接IP地址
             if (rule.matches(remoteAddress)) {
+//                匹配远程连接IP地址,返回过滤规则的类型是否是Accept
+//                IpFilterRuleType只有两种类型:ACCEPT,REJECT
                 return rule.ruleType() == IpFilterRuleType.ACCEPT;
             }
         }
